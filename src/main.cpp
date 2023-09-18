@@ -1,8 +1,9 @@
 #include <Arduino.h>
+#include <string>
 
 #define VRX1 36
 #define VRY1 39
-#define SW 34
+#define SW 32
 
 #define LED 2
 
@@ -15,9 +16,8 @@ float mapf(float x, float in_min, float in_max, float out_min, float out_max){
 void printIfChanged(const char *flag, int previous, int current){
 	if (previous!=current){
 		Serial.print(flag);
-		Serial.print("=");
+		Serial.print(" ");
 		Serial.println(current);
-
 
 	}
 	
@@ -29,20 +29,22 @@ class Joystick{
 private:
 	int currentX, previousX, currentY, previousY, currentButton, previousButton;
 	int xPort, yPort, bPort;
-	char *name;
+	std::string name;
+	
 
 public:
-	Joystick(int valXport, int valYport, int valBport);
+	Joystick(int valXport, int valYport, int valBport, const std::string& joystickName);
 	void start();
 	void read();
 	void print();
 };
 
-Joystick::Joystick(int valXport, int valYport, int valBport){
+Joystick::Joystick(int valXport, int valYport, int valBport, const std::string& joystickName):xPort(valXport), yPort(valYport), bPort(valBport), name(joystickName){
 
-	xPort = valXport;
-	yPort = valYport;
-	bPort = valBport;
+	
+	// xPort = valXport;
+	// yPort = valYport;
+	// bPort = valBport;
 	pinMode(xPort, INPUT);
 	pinMode(yPort, INPUT);
 	pinMode(bPort, INPUT_PULLUP);
@@ -53,13 +55,13 @@ void Joystick::read(){
 	previousY = currentY;
 	previousButton = currentButton;
 
-	currentX = mapf(analogRead(xPort) ,0 , MAXINPUT, -5, 5);
-	currentY = mapf(analogRead(yPort),0 , MAXINPUT, -5, 5);
+	currentX = mapf(analogRead(xPort) ,0 , MAXINPUT, -10, 10);
+	currentY = mapf(analogRead(yPort),0 , MAXINPUT, -10, 10);
 	currentButton = digitalRead(bPort);
 
-	printIfChanged("leftX", previousX, currentX);
-	printIfChanged("leftY", previousY, currentY);
-	printIfChanged("leftB", previousButton, currentButton);
+	printIfChanged((name + "X").c_str(), previousX, currentX);
+	printIfChanged((name + "Y").c_str(), previousY, currentY);
+	printIfChanged((name + "B").c_str(), previousButton, currentButton);
 
 
 }
@@ -80,7 +82,7 @@ void Joystick::print(){
 	Serial.println(" ");
 };
 
-Joystick left(VRX1, VRY1, SW);
+Joystick left(VRX1, VRY1, SW, "left");
 
 void setup(){
 
@@ -93,9 +95,6 @@ void setup(){
 void loop(){
 
 	while (1){
-		printIfChanged("flag", 2,2);
 		left.read();
-		// left.print();
-		delay(100);
 	}
 }
